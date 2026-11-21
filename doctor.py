@@ -62,7 +62,34 @@ def check_dns(domain="acs.oss.jio.com"):
     try:
         return socket.gethostbyname(domain)
     except Exception:
-        return None
+        pass
+    # If host DNS isn't pointed at localhost, query Technitium directly on 127.0.0.1:53
+    try:
+        import struct
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(1.0)
+        qname = b''.join(bytes([len(p)]) + p.encode() for p in domain.split('.')) + b'\x00'
+        s.sendto(b'\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00' + qname + b'\x00\x01\x00\x01', ('127.0.0.1', 53))
+        data, _ = s.recvfrom(512)
+        ancount = struct.unpack('>H', data[6:8])[0]
+        if ancount > 0:
+            idx = 12
+            while data[idx] != 0: idx += 1 + data[idx]
+            idx += 5
+            for _ in range(ancount):
+                if idx >= len(data): break
+                if (data[idx] & 0xC0) == 0xC0: idx += 2
+                else:
+                    while data[idx] != 0: idx += 1 + data[idx]
+                    idx += 1
+                atype, aclass, ttl, rdlen = struct.unpack('>HHIH', data[idx:idx+10])
+                idx += 10
+                if atype == 1 and rdlen == 4:
+                    return socket.inet_ntoa(data[idx:idx+4])
+                idx += rdlen
+    except Exception:
+        pass
+    return None
 
 def query_nbi(endpoint, nbi_url=DEFAULT_NBI, method="GET", data=None):
     url = f"{nbi_url.rstrip('/')}/{endpoint.lstrip('/')}"
@@ -74,7 +101,8 @@ def query_nbi(endpoint, nbi_url=DEFAULT_NBI, method="GET", data=None):
         elif isinstance(data, (bytes, str)):
             req.data = data.encode("utf-8") if isinstance(data, str) else data
     try:
-        with urllib.request.urlopen(req, timeout=1.5) as resp:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(req, timeout=1.5) as resp:
             body = resp.read().decode("utf-8", errors="replace")
             return resp.status, body
     except urllib.error.HTTPError as e:
@@ -251,7 +279,8 @@ def run_simulate(tls_port=DEFAULT_TLS_PORT, nbi_url=DEFAULT_NBI):
     session_cookie = None
     try:
         req = urllib.request.Request(url, data=soap_body.encode("utf-8"), headers=headers, method="POST")
-        with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), urllib.request.HTTPSHandler(context=ctx))
+        with opener.open(req, timeout=8) as resp:
             resp_body = resp.read().decode("utf-8", errors="replace")
             # Extract set-cookie
             for k, v in resp.getheaders():
@@ -272,7 +301,7 @@ def run_simulate(tls_port=DEFAULT_TLS_PORT, nbi_url=DEFAULT_NBI):
         if session_cookie:
             empty_headers["Cookie"] = session_cookie
         req2 = urllib.request.Request(url, data=b"", headers=empty_headers, method="POST")
-        with urllib.request.urlopen(req2, context=ctx, timeout=8) as resp2:
+        with opener.open(req2, timeout=8) as resp2:
             print(f"  {GREEN}[PASS]{NC} CWMP session completed cleanly (HTTP {resp2.status})")
     except Exception as e:
         print(f"  {YELLOW}[WARN]{NC} Empty POST notice: {e}")

@@ -55,10 +55,12 @@ def _forge_netcheck():
 
 loglock = threading.Lock()
 def log(m):
+    line = f"[{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {m}"
+    print(line, flush=True)
     with loglock:
         try:
             with open(LOG, "a", encoding="utf-8", errors="replace") as f:
-                f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {m}\n")
+                f.write(line + "\n")
         except Exception:
             pass
 

@@ -23,9 +23,16 @@
 #
 set -uo pipefail
 
+JHS_REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -f "$JHS_REPO_DIR/adb.exe" ]; then
+    ADB_DEFAULT="$JHS_REPO_DIR/adb.exe"
+else
+    ADB_DEFAULT="adb"
+fi
+
 NBI_URL="${NBI_URL:-http://127.0.0.1:7557}"
 STB_IP="${STB_IP:-192.168.1.128}"
-ADB="${ADB_BIN:-adb}"
+ADB="${ADB_BIN:-$ADB_DEFAULT}"
 DEVICE_ID="${DEVICE_ID:-FCD5D9-JHSC200-RPCSBBG00082328}"
 
 # JHS package names, corrected from the JMSC/JMSB names the repo assumes.
@@ -124,7 +131,7 @@ for k in ('Enable','OnBootExecuteCmd','Output','Error','ValidityDate','lastExecu
     # ──────────────────────────────────────────────────────── post-setup
     --post-setup)
         echo -e "${CYAN}JHS post-setup (STB $STB_IP:$ADB_PORT)${NC}"
-        [ "$("$ADB" get-state -s "$STB_IP:$ADB_PORT" 2>/dev/null)" = "device" ] \
+        [ "$("$ADB" -s "$STB_IP:$ADB_PORT" get-state 2>/dev/null)" = "device" ] \
             || { fail "ADB not authorised on $STB_IP:$ADB_PORT"; exit 1; }
         log "ADB authorised"
 
@@ -147,7 +154,7 @@ for k in ('Enable','OnBootExecuteCmd','Output','Error','ValidityDate','lastExecu
         HERE="$(cd "$(dirname "$0")/.." && pwd)"
         for apk in "$HERE"/*[Mm]onet*.apk "$HERE"/*[Ss]hevery*.apk; do
             [ -f "$apk" ] || continue
-            out="$("$ADB" install -r -g "$apk" 2>&1 | tail -1)"
+            out="$("$ADB" -s "$STB_IP:$ADB_PORT" install -r -g "$apk" 2>&1 | tail -1)"
             log "$(basename "$apk") -> $out"
         done
 

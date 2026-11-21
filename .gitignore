@@ -1,0 +1,20 @@
+# Temporary certificates and private keys
+*.pem
+*.key
+*.cer
+*.crt
+
+# Logs and runtime PID files
+*.log
+*.pid
+
+# APK packages
+*.apk
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS metadata
+.DS_Store
+Thumbs.db

@@ -1,5 +1,7 @@
 # Jio STB ADB Setup Guide (Windows 11 & 10)
 
+> **Fork Note (JHSC200 v3):** This fork includes minor unlock script adjustments (`jhs/jhs_stage1.sh`) tested on the Jio JHSC200 v3. For post-unlock debloating, NTP clock sync, LeanKeyboard setup, and retro gaming configuration, see my companion repository: **[jhsc200-retro-media-setup](https://github.com/rvnvamshikrishna/jhsc200-retro-media-setup)**.
+
 A beginner-friendly, clutter-free walkthrough to enable **network ADB debugging** and sideload custom launchers/apps on supported Jio Set-Top Boxes using a Windows PC and your home Wi-Fi router.
 
 > [!TIP]

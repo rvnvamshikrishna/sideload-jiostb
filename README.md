@@ -13,7 +13,7 @@ A beginner-friendly, clutter-free walkthrough to enable **network ADB debugging*
 > [!NOTE]
 > **Supported Hardware & Firmware:**
 > * **JMSC200Av2** and **JMSB200A** across firmware builds `22.1.09`, `24.1.39`, `25.1.9`, and older.
-> * **JHS series (JHSC200 v1 / JioOS 2.0)** on firmware build `stb-jhcs200-11.3.46`.
+> * **JHS series (JHSC200 v1 / v3 / JioOS 2.0)** on firmware build `stb-jhcs200-11.3.46` (SDMC DV8545 hardware).
 >
 > *Both box families use the exact same `./stage1.sh` workflow. The only difference is in **Step 8** (launching the proxy listener).*
 
@@ -279,6 +279,19 @@ Since the built-in package installer UI is disabled on the STB, install any Andr
 | `./jhs/jhs_stage1.sh --post-setup` | Sideload Monet/Shevery, delete/disable OTA & TR-069 packages, and grant Shevery permissions on JHS |
 | `./jhs/jhs_stage1.sh --clu-probe` | Queue native root command execution probe via `tr069native` |
 | `./jhs/jhs_stage1.sh --clu-read` | Read back executed command output from `tr069native` root probe |
+
+---
+
+## 🛠️ JHSC200 v3 Post-Unlock Recommended Setup
+
+If you are unlocking a **JHSC200 v3** (Amlogic S905X2 / Android 11), a companion repository is available with complete automated scripts for:
+* **System Debloating:** Disabling persistent Jio background telemetry, crash reporters, and memory killers (`appoptimizer`).
+* **Overlay Revocation:** Revoking `SYSTEM_ALERT_WINDOW` ("Display over other apps") from hidden Jio system services.
+* **Clock Sync:** Automatic real-time NTP clock sync to prevent SSL certificate errors (`SSLHandshakeException`) in SmartTube and web browsers.
+* **Input Configuration:** Enabling and configuring LeanKeyboard as the default Leanback IME.
+* **Retro Gaming:** Full setup for 60 FPS PS1, GBA, and SNES emulation.
+
+👉 **Repository:** [jhsc200-retro-media-setup](https://github.com/rvnvamshikrishna/jhsc200-retro-media-setup)
 
 ---
 
